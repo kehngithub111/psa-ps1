@@ -75,6 +75,7 @@ export function PurchaseRequestEditGeneralInformation() {
             path="chargedTo"
             placeholder="Select a charged to"
             required
+            searchable
             options={[
               { value: "low", label: "Low" },
               { value: "normal", label: "Normal" },
@@ -87,6 +88,7 @@ export function PurchaseRequestEditGeneralInformation() {
             path="papCode"
             placeholder="Select a pap code"
             required
+            searchable
             options={[
               { value: "low", label: "Low" },
               { value: "normal", label: "Normal" },

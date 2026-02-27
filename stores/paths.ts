@@ -1,6 +1,4 @@
-// ============ ADVANCED PATH TYPES ============
-
-import { PurchaseRequest } from "./global-state";
+import { PurchaseRequest } from "./types";
 
 type Primitive = string | number | boolean | bigint | symbol | undefined | null;
 
@@ -47,3 +45,29 @@ export type PathValue<
         ? U
         : never
       : never;
+
+// ============ HELPER FUNCTIONS ============
+
+export const setNestedValue = (obj: unknown, path: string, value: unknown): void => {
+  const keys = path.split(".");
+  let current = obj as Record<string, unknown>;
+
+  for (let i = 0; i < keys.length - 1; i++) {
+    const key = keys[i];
+    if (!isNaN(Number(key))) {
+      current = (current as unknown as Array<unknown>)[Number(key)] as Record<
+        string,
+        unknown
+      >;
+    } else {
+      current = current[key] as Record<string, unknown>;
+    }
+  }
+
+  const lastKey = keys[keys.length - 1];
+  if (!isNaN(Number(lastKey))) {
+    (current as unknown as Array<unknown>)[Number(lastKey)] = value;
+  } else {
+    current[lastKey] = value;
+  }
+};

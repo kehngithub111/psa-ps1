@@ -16,19 +16,14 @@ export function PurchaseRequestEditActivityDetails() {
           </div>
         </div>
         <div className="p-4 grid grid-cols-2 gap-4">
-          <ComponentCustomTextarea
-            path="activity.title"
-            label="Title"
-            placeholder="Enter the title of this activity"
-            required
-          />
-
-          <ComponentCustomTextarea
-            path="activity.purpose"
-            label="Purpose"
-            placeholder="Enter the purpose of this activity"
-            required
-          />
+          <div className="col-span-2">
+            <ComponentCustomTextarea
+              path="activity.title"
+              label="Title"
+              placeholder="Enter the title of this activity"
+              required
+            />
+          </div>
 
           <ComponentCustomDatePickerWithRange
             startPath="activity.schedule.dateStart"
@@ -48,6 +43,15 @@ export function PurchaseRequestEditActivityDetails() {
             storeAsTimestamp
             required
           />
+
+          <div className="col-span-2">
+            <ComponentCustomTextarea
+              path="activity.purpose"
+              label="Purpose"
+              placeholder="Enter the purpose of this activity"
+              required
+            />
+          </div>
         </div>
       </div>
     </>

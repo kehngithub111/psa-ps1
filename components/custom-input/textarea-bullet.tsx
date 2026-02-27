@@ -9,12 +9,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import useStore, {
-  PurchaseRequestPath,
-  PurchaseRequest,
-  PathValue,
-} from "@/stores/global-state";
+
 import { cn } from "@/lib/utils";
+import { PathValue, PurchaseRequestPath } from "@/stores/paths";
+import { PurchaseRequest } from "@/stores/types";
+import useStore from "@/stores/global-state";
 
 // ============================================
 // Helpers

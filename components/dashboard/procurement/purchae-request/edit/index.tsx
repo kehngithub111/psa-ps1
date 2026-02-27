@@ -20,12 +20,12 @@ export function PurchaseRequestEditMainContainer() {
     <>
       <div className="max-w-250 w-full mx-auto py-4 space-y-4">
         <PurchaseRequestEditGeneralInformation />
-        <PurchaseRequestEditActivityDetails />
+        {/* <PurchaseRequestEditActivityDetails /> */}
         <PurchaseRequestEditItemDetails />
-        <PurchaseRequestEditOtherDetails />
-        <PurchaseRequestEditDeliveryDetails />
-        <PurchaseRequestEditAttachmentDetails />
-        <PurchaseRequestEditSignatories />
+        {/* <PurchaseRequestEditOtherDetails /> */}
+        {/* <PurchaseRequestEditDeliveryDetails /> */}
+        {/* <PurchaseRequestEditAttachmentDetails /> */}
+        {/* <PurchaseRequestEditSignatories /> */}
 
         <Button onClick={handleSubmitPrForApproval}>Submit for Approval</Button>
       </div>

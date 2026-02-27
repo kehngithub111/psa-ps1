@@ -1,116 +1,23 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { current } from "immer";
-import { PathValue, PurchaseRequestPath } from "./paths";
-
-// ============ TYPES ============
-
-interface Schedule {
-  dateStart: Date | number | undefined;
-  dateEnd: Date | number | undefined;
-  timeStart: string | number;
-  timeEnd: string | number;
-}
-
-interface Activity {
-  title: string;
-  schedule: Schedule;
-  venue: string;
-  purpose: string;
-}
-
-interface NestedSpecification {
-  title: string;
-  specifications: string[];
-}
-
-interface Specifications {
-  single: string[];
-  nested: NestedSpecification[];
-}
-
-interface ItemDescription {
-  title: string;
-  descriptions: string[];
-}
-
-export interface NormalItem {
-  id?: string;
-  stockPropertyNo: string;
-  unit: string;
-  itemDescription: ItemDescription;
-  quantity: number;
-  unitCost: number;
-  totalCost: number;
-  specifications: Specifications;
-}
-
-export interface PurchaseRequest {
-  prNumber: string;
-  fundCluster: string;
-  rcc: string;
-  draftDate: Date | number | undefined;
-  procurementMode: string;
-  priorityLevel: string;
-  chargedTo: string;
-  papCode: string;
-  officeSection: string;
-
-  activity: Activity;
-
-  normalItem: NormalItem[];
-
-  delivery: {
-    additionalInstruction: string;
-    date: Date | undefined;
-    time: string | number;
-    location: string;
-  };
-
-  notes: string[];
-  inclusions: string[];
-  roomAccommodations: string[];
-  functionRooms: string[];
-  additionalRequirements: string[];
-
-  requestedBy: string;
-  approvedBy: string;
-  inclusionedBy: string;
-}
-
-// ============ EMPTY/DEFAULT ITEMS ============
-
-export const createEmptyNestedSpec = (): NestedSpecification => ({
-  title: "Grouped Title",
-  specifications: ["Spec 1", "Spec 2"],
-});
-
-export const createEmptySpecifications = (): Specifications => ({
-  single: ["Single Spec 1", "Single Spec 2"],
-  nested: [
-    createEmptyNestedSpec(),
-    createEmptyNestedSpec(),
-    createEmptyNestedSpec(),
-  ],
-});
-
-export const createEmptyItem = (): NormalItem => ({
-  id: generateId(),
-  stockPropertyNo: "",
-  unit: "",
-  itemDescription: {
-    title: "",
-    descriptions: [],
-  },
-  quantity: 0,
-  unitCost: 0,
-  totalCost: 0,
-  specifications: createEmptySpecifications(),
-});
-
-// ============ STORE STATE ============
-const generateId = () =>
-  `item-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+import { PathValue, PurchaseRequestPath, setNestedValue } from "./paths";
+import {
+  LotDescription,
+  LotItem,
+  NestedSpecification,
+  NormalItem,
+  PurchaseRequest,
+  Specifications,
+} from "./types";
+import {
+  createEmptyDescription,
+  createEmptyItem,
+  createEmptyLotItems,
+  createEmptyNestedSpec,
+  generateId,
+  initialPurchaseRequest,
+} from "./initial-value";
 
 interface StoreState {
   purchaseRequest: PurchaseRequest;
@@ -168,83 +75,19 @@ interface StoreState {
 
   // Reset
   resetPurchaseRequest: () => void;
-
   reorderItems: (newItems: NormalItem[]) => void;
+
+  // Lot Item Actions (to be implemented)
+  addLotItem: () => void;
+  duplicateLotItem: (lotIndex: number) => void;
+  deleteLotItem: (lotIndex: number) => void;
+
+  addLotDescription: (lotIndex: number) => void;
+  deleteLotDescription: (lotIndex: number, descriptionIndex: number) => void;
+  duplicateLotDescription: (lotIndex: number, descriptionIndex: number) => void;
 }
 
-// ============ INITIAL STATE ============
-
-const initialPurchaseRequest: PurchaseRequest = {
-  prNumber: "",
-  fundCluster: "FC",
-  rcc: "RCC",
-  draftDate: undefined,
-  procurementMode: "small_value",
-  priorityLevel: "urgent",
-  chargedTo: "",
-  papCode: "",
-  officeSection: "socd",
-
-  activity: {
-    title: "This is a sample title for this procurement",
-    schedule: {
-      dateStart: undefined,
-      dateEnd: undefined,
-      timeStart: "08:00 AM",
-      timeEnd: "05:00 PM",
-    },
-    venue: "Butuan City, Agusan del Norte",
-    purpose: "This is a sample purpose for this procurement",
-  },
-
-  normalItem: [],
-
-  delivery: {
-    additionalInstruction: "10 days after the receipt of PO",
-    date: undefined,
-    time: "08:00 AM",
-    location: "Butuan City, Agusan del Norte",
-  },
-
-  notes: [],
-  inclusions: [],
-  roomAccommodations: [],
-  functionRooms: [],
-  additionalRequirements: [],
-
-  requestedBy: "",
-  approvedBy: "",
-  inclusionedBy: "",
-};
-
-// ============ HELPER FUNCTIONS ============
-
-const setNestedValue = (obj: unknown, path: string, value: unknown): void => {
-  const keys = path.split(".");
-  let current = obj as Record<string, unknown>;
-
-  for (let i = 0; i < keys.length - 1; i++) {
-    const key = keys[i];
-    if (!isNaN(Number(key))) {
-      current = (current as unknown as Array<unknown>)[Number(key)] as Record<
-        string,
-        unknown
-      >;
-    } else {
-      current = current[key] as Record<string, unknown>;
-    }
-  }
-
-  const lastKey = keys[keys.length - 1];
-  if (!isNaN(Number(lastKey))) {
-    (current as unknown as Array<unknown>)[Number(lastKey)] = value;
-  } else {
-    current[lastKey] = value;
-  }
-};
-
 // ============ STORE ============
-
 const useStore = create<StoreState>()(
   immer((set) => ({
     purchaseRequest: initialPurchaseRequest,
@@ -256,7 +99,6 @@ const useStore = create<StoreState>()(
       }),
 
     // ============ NORMAL ITEM ACTIONS ============
-
     addItem: () =>
       set((state) => {
         state.purchaseRequest.normalItem.push(createEmptyItem());
@@ -298,7 +140,6 @@ const useStore = create<StoreState>()(
       }),
 
     // ============ SINGLE SPECIFICATIONS ACTIONS ============
-
     addSingleSpec: (itemIndex) =>
       set((state) => {
         state.purchaseRequest.normalItem[itemIndex].specifications.single.push(
@@ -321,7 +162,6 @@ const useStore = create<StoreState>()(
       }),
 
     // ============ NESTED SPECIFICATIONS ACTIONS ============
-
     addNestedSpec: (itemIndex) =>
       set((state) => {
         state.purchaseRequest.normalItem[itemIndex].specifications.nested.push(
@@ -421,6 +261,64 @@ const useStore = create<StoreState>()(
           normalItem: newItems,
         },
       })),
+
+    // =========== LOT ITEM ACTIONS ============
+    addLotItem: () =>
+      set((state) => {
+        state.purchaseRequest.lotItem.push(createEmptyLotItems());
+      }),
+
+    duplicateLotItem: (index: number) =>
+      set((state) => {
+        const items = state.purchaseRequest.lotItem;
+        const originalItem = items[index];
+
+        if (!originalItem) return;
+
+        const plainItem = current(originalItem);
+        const duplicatedItem: LotItem = {
+          ...JSON.parse(JSON.stringify(plainItem)),
+          id: generateId(),
+        };
+
+        items.splice(index + 1, 0, duplicatedItem);
+      }),
+
+    deleteLotItem: (index) =>
+      set((state) => {
+        state.purchaseRequest.lotItem.splice(index, 1);
+      }),
+
+    addLotDescription: (lotIndex: number) =>
+      set((state) => {
+        state.purchaseRequest.lotItem[lotIndex].lotDescription.push(
+          createEmptyDescription(),
+        );
+      }),
+
+    duplicateLotDescription: (lotIndex: number, descriptionIndex: number) =>
+      set((state) => {
+        const lotItem = state.purchaseRequest.lotItem[lotIndex];
+        const originalItem = lotItem.lotDescription[descriptionIndex];
+
+        if (!originalItem) return;
+
+        const plainItem = current(originalItem);
+        const duplicatedItem: LotDescription = {
+          ...JSON.parse(JSON.stringify(plainItem)),
+          id: generateId(),
+        };
+
+        lotItem.lotDescription.splice(descriptionIndex + 1, 0, duplicatedItem);
+      }),
+
+    deleteLotDescription: (lotIndex: number, descriptionIndex: number) =>
+      set((state) => {
+        state.purchaseRequest.lotItem[lotIndex].lotDescription.splice(
+          descriptionIndex,
+          1,
+        );
+      }),
   })),
 );
 
